@@ -9,10 +9,10 @@
       />
       <div class="card-body">
         <h5 class="card-title">{{ movie.title }}</h5>
+        <strong></strong> {{ movie.release_year }}<br />
         <p class="card-text">
-          <strong>Genre:</strong> {{ movie.genre }}<br />
+          <strong></strong> {{ movie.genre }}<br /><br />
           <strong>Director:</strong> {{ movie.director }}<br />
-          <strong>Year:</strong> {{ movie.release_year }}<br />
           <strong>Rating:</strong> {{ movie.rating }}
         </p>
         <button class="btn btn-sm btn-danger me-2" @click="deleteMovie">
