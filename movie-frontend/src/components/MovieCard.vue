@@ -13,7 +13,7 @@
         <p class="card-text">
           <strong></strong> {{ movie.genre }}<br /><br />
           <strong>Director:</strong> {{ movie.director }}<br />
-          <strong>Rating:</strong> {{ movie.rating }}
+          <strong></strong>⭐{{ movie.rating }}
         </p>
         <button class="btn btn-sm btn-danger me-2" @click="deleteMovie">
           Delete
