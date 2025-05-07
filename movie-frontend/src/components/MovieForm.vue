@@ -1,78 +1,73 @@
 <template>
-  <div class="card p-3 mb-4">
-    <h3>{{ isEdit ? "Edit Movie" : "Add New Movie" }}</h3>
+  <div>
     <form @submit.prevent="handleSubmit">
       <div class="mb-3">
-        <label for="title" class="form-label">Title</label>
+        <label class="form-label">Title</label>
         <input
           v-model="movie.title"
           type="text"
-          placeholder="Title"
-          id="title"
           class="form-control"
-          required
+          :class="{ 'is-invalid': errors.title }"
         />
+        <div class="invalid-feedback">{{ errors.title }}</div>
       </div>
 
       <div class="mb-3">
-        <label for="genre" class="form-label">Genre</label>
+        <label class="form-label">Genre</label>
         <input
           v-model="movie.genre"
           type="text"
-          placeholder="Genre"
-          id="genre"
           class="form-control"
-          required
+          :class="{ 'is-invalid': errors.genre }"
         />
+        <div class="invalid-feedback">{{ errors.genre }}</div>
       </div>
 
       <div class="mb-3">
-        <label for="director" class="form-label">Director</label>
+        <label class="form-label">Director</label>
         <input
           v-model="movie.director"
           type="text"
-          placeholder="Director"
-          id="director"
           class="form-control"
-          required
+          :class="{ 'is-invalid': errors.director }"
         />
+        <div class="invalid-feedback">{{ errors.director }}</div>
       </div>
 
       <div class="mb-3">
-        <label for="release_year" class="form-label">Release Year</label>
+        <label class="form-label">Release Year</label>
         <input
-          v-model.number="movie.release_year"
+          v-model="movie.release_year"
           type="number"
-          placeholder="Release Year"
-          id="release_year"
           class="form-control"
-          required
+          :class="{ 'is-invalid': errors.release_year }"
         />
+        <div class="invalid-feedback">{{ errors.release_year }}</div>
       </div>
 
       <div class="mb-3">
-        <label for="rating" class="form-label">Rating</label>
+        <label class="form-label">Rating</label>
         <input
-          v-model.number="movie.rating"
+          v-model="movie.rating"
           type="number"
           step="0.1"
           min="0"
           max="10"
-          placeholder="Rating"
-          id="rating"
           class="form-control"
-          required
+          :class="{ 'is-invalid': errors.rating }"
         />
+        <div class="invalid-feedback">{{ errors.rating }}</div>
       </div>
 
       <div class="mb-3">
-        <label for="poster" class="form-label">Poster URL</label>
+        <label class="form-label">Poster URL</label>
         <input
           v-model="movie.poster"
           type="text"
-          id="poster"
           class="form-control"
+          :class="{ 'is-invalid': errors.poster }"
         />
+        <div class="invalid-feedback">{{ errors.poster }}</div>
       </div>
 
       <button type="submit" class="btn btn-primary">
@@ -83,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, watch, reactive } from "vue";
+import { ref, reactive, watch } from "vue";
 import axios from "axios";
 
 const props = defineProps({
@@ -100,42 +95,82 @@ const movie = reactive({
   poster: "",
 });
 
+const errors = reactive({
+  title: "",
+  genre: "",
+  director: "",
+  release_year: "",
+  rating: "",
+  poster: "",
+});
+
 const isEdit = ref(false);
 
 watch(
   () => props.movieToEdit,
   (newMovie) => {
     if (newMovie) {
-      Object.assign(movie, newMovie); // ✅ Correct use of reactive
+      Object.assign(movie, newMovie);
       isEdit.value = true;
     }
   }
 );
 
+const validateForm = () => {
+  let valid = true;
+  Object.keys(errors).forEach((key) => (errors[key] = ""));
+
+  if (!movie.title) {
+    errors.title = "Title is required.";
+    valid = false;
+  }
+  if (!movie.genre) {
+    errors.genre = "Genre is required.";
+    valid = false;
+  }
+  if (!movie.director) {
+    errors.director = "Director is required.";
+    valid = false;
+  }
+  if (!movie.release_year) {
+    errors.release_year = "Release year is required.";
+    valid = false;
+  }
+  if (movie.rating === null || movie.rating < 0 || movie.rating > 10) {
+    errors.rating = "Rating must be between 0 and 10.";
+    valid = false;
+  }
+
+  return valid;
+};
+
 const handleSubmit = async () => {
+  if (!validateForm()) return;
+
   try {
-    console.log("Payload being sent:", { ...movie }); // ✅ Debug line
     const response = await axios.post(
       "http://127.0.0.1:8000/api/movies/",
       movie
     );
-    console.log("Success:", response.data);
     props.onMovieAdded();
     resetForm();
+    // Close modal manually
+    const modal = bootstrap.Modal.getInstance(
+      document.getElementById("movieFormModal")
+    );
+    modal.hide();
   } catch (error) {
-    console.error("Error adding movie:", error.response?.data || error.message);
+    console.error("Submission error:", error.response?.data || error.message);
   }
 };
 
 const resetForm = () => {
-  Object.assign(movie, {
-    title: "",
-    genre: "",
-    director: "",
-    release_year: null,
-    rating: null,
-    poster: "",
-  });
+  movie.title = "";
+  movie.genre = "";
+  movie.director = "";
+  movie.release_year = null;
+  movie.rating = null;
+  movie.poster = "";
   isEdit.value = false;
 };
 </script>
